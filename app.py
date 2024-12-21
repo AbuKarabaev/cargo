@@ -36,9 +36,10 @@ def log_event(event):
 def start(message):
     commands_list = (
         "/register - Регистрация\n"
+        "/get_banned_pdf - Получить PDF со списком запрещенных товаров\n"
     )
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    markup.add('Регистрация')
+    markup.add('Регистрация', '/get_banned_pdf Получить PDF')
     bot.send_message(message.chat.id, "Добро пожаловать! Доступные команды:\n" + commands_list, reply_markup=markup)
     log_event(f"User {message.chat.id} started or requested help.")
 
@@ -94,15 +95,19 @@ def get_phone(message):
     except Exception as e:
         log_event(f"Ошибка отправки данных в админ-бот через API: {e}")
 
-    # Отправка сообщения пользователю
-    address_message = (f"Ваш адрес для доставки:\n"
-                       f"广东省佛山市南海区里水镇环镇南路33号1号仓315库B6961\n"
-                       f"收货人 梅先生-B6961\n"
-                       f"Телефон: 13250150777\n"
-                       f"Ссылка: https://t.me/+N1Xktz9wb55jZjRi\n"
-                       f"Ваш уникальный код: {user_code}")
+    # Отправка первого сообщения пользователю
+    address_message_1 = (f"Ваш адрес для доставки:\n"
+                         f"广东省佛山市南海区里水镇环镇南路33号1号仓315库B6961\n"
+                         f"收货人 梅先生-B6961\n"
+                         f"Телефон: +996 550 686 961\n"
+                         f"Ссылка: https://t.me/+N1Xktz9wb55jZjRi\n"
+                         f"Ваш уникальный код: {user_code}")
+    bot.send_message(message.chat.id, address_message_1)
 
-    bot.send_message(message.chat.id, address_message)
+    # Отправка второго сообщения пользователю
+    address_message_2 = (f"广东省佛山市南海区里水镇环镇南路33号1号仓315库B6961\n"
+                         f"收货人 梅先生-B6961\n")
+    bot.send_message(message.chat.id, address_message_2)
 
     # Отправка двух видео
     video_paths = ['instruction.mp4', 'instructions.mp4']
@@ -124,6 +129,21 @@ def cancel(message):
     log_event(f"User {message.chat.id} cancelled registration.")
     if message.chat.id in user_data:
         del user_data[message.chat.id]
+
+# Отправка PDF-файла со списком запрещенных товаров
+@bot.message_handler(commands=['get_banned_pdf'])
+def send_banned_pdf(message):
+    try:
+        pdf_file_path = "zpr.pdf"  # Укажите точное имя вашего файла
+        with open(pdf_file_path, 'rb') as pdf_file:
+            bot.send_document(message.chat.id, pdf_file)
+        log_event(f"PDF со списком запрещенных товаров отправлен пользователю {message.chat.id}.")
+    except FileNotFoundError:
+        bot.send_message(message.chat.id, "Файл PDF со списком запрещенных товаров временно недоступен.")
+        log_event(f"Ошибка: PDF-файл не найден.")
+    except Exception as e:
+        bot.send_message(message.chat.id, "Произошла ошибка при отправке PDF.")
+        log_event(f"Ошибка отправки PDF: {e}")
 
 if __name__ == '__main__':
     bot.infinity_polling()

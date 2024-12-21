@@ -1,0 +1,2 @@
+2024-12-21 13:10:55,734 - ERROR - Infinity polling: polling exited
+2024-12-21 13:10:55,736 - ERROR - Break infinity polling
